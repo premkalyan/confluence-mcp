@@ -24,8 +24,8 @@ export async function getConfluenceCredentials(apiKey: string): Promise<Confluen
   }
 
   return {
-    url: project.configs.confluence.url,
-    username: project.configs.confluence.username,
-    apiToken: project.configs.confluence.api_token
+    url: project.configs.confluence.baseUrl,
+    username: project.configs.confluence.email,
+    apiToken: project.configs.confluence.apiToken
   };
 }
