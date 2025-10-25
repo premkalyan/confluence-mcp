@@ -67,6 +67,94 @@ export async function POST(request: NextRequest) {
         result = await confluence.addPageLabels(args.pageId, args.labels);
         break;
 
+      case 'upload_document':
+        result = await confluence.uploadDocument(args.pageId, args.file, args.comment);
+        break;
+
+      case 'update_document':
+        result = await confluence.updateDocument(args.pageId, args.attachmentId, args.file, args.comment);
+        break;
+
+      case 'delete_document':
+        result = await confluence.deleteDocument(args.attachmentId);
+        break;
+
+      case 'list_documents':
+        result = await confluence.listDocuments(args.spaceKey, args.type, args.limit);
+        break;
+
+      case 'create_folder':
+        result = await confluence.createFolder(args.spaceKey, args.title, args.parentId);
+        break;
+
+      case 'get_folder_contents':
+        result = await confluence.getFolderContents(args.pageId, args.expand);
+        break;
+
+      case 'move_page_to_folder':
+        result = await confluence.movePageToFolder(args.pageId, args.newParentId, args.currentVersion);
+        break;
+
+      case 'create_page_template':
+        result = await confluence.createPageTemplate(args.spaceKey, args.name, args.content, args.description);
+        break;
+
+      case 'get_page_templates':
+        result = await confluence.getPageTemplates(args.spaceKey);
+        break;
+
+      case 'apply_page_template':
+        result = await confluence.applyPageTemplate(args.templateId, args.spaceKey, args.title, args.parentId);
+        break;
+
+      case 'update_page_template':
+        result = await confluence.updatePageTemplate(args.templateId, args.name, args.content, args.version);
+        break;
+
+      case 'get_pages_by_label':
+        result = await confluence.getPagesByLabel(args.spaceKey, args.label, args.limit);
+        break;
+
+      case 'get_page_history':
+        result = await confluence.getPageHistory(args.pageId, args.limit);
+        break;
+
+      case 'insert_macro':
+        result = await confluence.insertMacro(args.pageId, args.macroName, args.parameters, args.body);
+        break;
+
+      case 'update_macro':
+        result = await confluence.updateMacro(args.pageId, args.oldMacroName, args.newMacroName, args.parameters);
+        break;
+
+      case 'get_page_macros':
+        result = await confluence.getPageMacros(args.pageId);
+        break;
+
+      case 'link_page_to_jira_issue':
+        result = await confluence.linkPageToJiraIssue(args.pageId, args.issueKey);
+        break;
+
+      case 'insert_jira_macro':
+        result = await confluence.insertJiraMacro(args.pageId, args.jqlQuery, args.displayOptions);
+        break;
+
+      case 'get_space_permissions':
+        result = await confluence.getSpacePermissions(args.spaceKey);
+        break;
+
+      case 'embed_existing_attachment':
+        result = await confluence.embedExistingAttachment(args.pageId, args.attachmentId, args.attachmentName);
+        break;
+
+      case 'upload_and_embed_document':
+        result = await confluence.uploadAndEmbedDocument(args.pageId, args.file, args.comment);
+        break;
+
+      case 'upload_and_embed_attachment':
+        result = await confluence.uploadAndEmbedAttachment(args.pageId, args.file, args.comment);
+        break;
+
       default:
         return NextResponse.json({ error: `Unknown tool: ${tool}` }, { status: 400 });
     }
@@ -85,7 +173,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     service: 'Confluence MCP Server',
-    version: '1.0.0',
+    version: '2.0.0',
     availableTools: [
       'get_spaces',
       'get_space',
@@ -96,7 +184,29 @@ export async function GET() {
       'update_page',
       'get_page_attachments',
       'get_page_children',
-      'add_page_labels'
+      'add_page_labels',
+      'upload_document',
+      'update_document',
+      'delete_document',
+      'list_documents',
+      'create_folder',
+      'get_folder_contents',
+      'move_page_to_folder',
+      'create_page_template',
+      'get_page_templates',
+      'apply_page_template',
+      'update_page_template',
+      'get_pages_by_label',
+      'get_page_history',
+      'insert_macro',
+      'update_macro',
+      'get_page_macros',
+      'link_page_to_jira_issue',
+      'insert_jira_macro',
+      'get_space_permissions',
+      'embed_existing_attachment',
+      'upload_and_embed_document',
+      'upload_and_embed_attachment'
     ],
     usage: 'POST to this endpoint with tool name and arguments'
   });
