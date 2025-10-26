@@ -4,16 +4,19 @@ export interface ConfluenceConfig {
   url: string;
   username: string;
   apiToken: string;
+  spaceKey?: string; // Default space from registry
 }
 
 export class ConfluenceClient {
   private baseUrl: string;
   private auth: { username: string; apiToken: string };
   private client: AxiosInstance;
+  public defaultSpaceKey?: string; // Store default space from registry
 
   constructor(config: ConfluenceConfig) {
     this.baseUrl = config.url;
     this.auth = { username: config.username, apiToken: config.apiToken };
+    this.defaultSpaceKey = config.spaceKey;
 
     // Create axios instance with base configuration
     this.client = axios.create({

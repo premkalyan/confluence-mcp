@@ -4,6 +4,7 @@ export interface ConfluenceCredentials {
   url: string;
   username: string;
   apiToken: string;
+  spaceKey?: string; // Default space from registry
 }
 
 export async function getConfluenceCredentials(apiKey: string): Promise<ConfluenceCredentials> {
@@ -26,6 +27,7 @@ export async function getConfluenceCredentials(apiKey: string): Promise<Confluen
   return {
     url: project.configs.confluence.baseUrl,
     username: project.configs.confluence.email,
-    apiToken: project.configs.confluence.apiToken
+    apiToken: project.configs.confluence.apiToken,
+    spaceKey: project.configs.confluence.spaceKey // Fetch from registry
   };
 }

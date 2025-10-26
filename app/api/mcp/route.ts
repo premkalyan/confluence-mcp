@@ -24,6 +24,15 @@ export async function POST(request: NextRequest) {
     // Create Confluence client
     const confluence = new ConfluenceClient(credentials);
 
+    // Helper to get spaceKey with fallback to registry default
+    const getSpaceKey = (providedKey?: string): string => {
+      const key = providedKey || confluence.defaultSpaceKey;
+      if (!key) {
+        throw new Error('spaceKey required: provide in arguments or configure in project registry');
+      }
+      return key;
+    };
+
     // Execute tool
     let result;
     switch (tool) {
@@ -32,7 +41,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'get_space':
-        result = await confluence.getSpace(args.spaceKey);
+        result = await confluence.getSpace(getSpaceKey(args.spaceKey));
         break;
 
       case 'get_content_by_id':
@@ -40,7 +49,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'get_content_by_space_and_title':
-        result = await confluence.getContentBySpaceAndTitle(args.spaceKey, args.title);
+        result = await confluence.getContentBySpaceAndTitle(getSpaceKey(args.spaceKey), args.title);
         break;
 
       case 'search':
@@ -48,7 +57,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'create_page':
-        result = await confluence.createPage(args.spaceKey, args.title, args.content, args.parentId);
+        result = await confluence.createPage(getSpaceKey(args.spaceKey), args.title, args.content, args.parentId);
         break;
 
       case 'update_page':
@@ -80,11 +89,11 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'list_documents':
-        result = await confluence.listDocuments(args.spaceKey, args.type, args.limit);
+        result = await confluence.listDocuments(getSpaceKey(args.spaceKey), args.type, args.limit);
         break;
 
       case 'create_folder':
-        result = await confluence.createFolder(args.spaceKey, args.title, args.parentId);
+        result = await confluence.createFolder(getSpaceKey(args.spaceKey), args.title, args.parentId);
         break;
 
       case 'get_folder_contents':
@@ -96,15 +105,15 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'create_page_template':
-        result = await confluence.createPageTemplate(args.spaceKey, args.name, args.content, args.description);
+        result = await confluence.createPageTemplate(getSpaceKey(args.spaceKey), args.name, args.content, args.description);
         break;
 
       case 'get_page_templates':
-        result = await confluence.getPageTemplates(args.spaceKey);
+        result = await confluence.getPageTemplates(getSpaceKey(args.spaceKey));
         break;
 
       case 'apply_page_template':
-        result = await confluence.applyPageTemplate(args.templateId, args.spaceKey, args.title, args.parentId);
+        result = await confluence.applyPageTemplate(args.templateId, getSpaceKey(args.spaceKey), args.title, args.parentId);
         break;
 
       case 'update_page_template':
@@ -112,7 +121,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'get_pages_by_label':
-        result = await confluence.getPagesByLabel(args.spaceKey, args.label, args.limit);
+        result = await confluence.getPagesByLabel(getSpaceKey(args.spaceKey), args.label, args.limit);
         break;
 
       case 'get_page_history':
@@ -140,7 +149,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'get_space_permissions':
-        result = await confluence.getSpacePermissions(args.spaceKey);
+        result = await confluence.getSpacePermissions(getSpaceKey(args.spaceKey));
         break;
 
       case 'embed_existing_attachment':
