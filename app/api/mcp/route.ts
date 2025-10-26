@@ -144,15 +144,35 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'embed_existing_attachment':
-        result = await confluence.embedExistingAttachment(args.pageId, args.attachmentId, args.attachmentName);
+        result = await confluence.embedExistingAttachment(
+          args.pageId,
+          args.attachmentId,
+          args.attachmentName,
+          args.width,
+          args.position
+        );
         break;
 
       case 'upload_and_embed_document':
-        result = await confluence.uploadAndEmbedDocument(args.pageId, args.file, args.comment);
+        result = await confluence.uploadAndEmbedDocument(args.pageId, {
+          file: args.file,
+          fileUrl: args.fileUrl,
+          filename: args.filename,
+          comment: args.comment,
+          width: args.width,
+          position: args.position
+        });
         break;
 
       case 'upload_and_embed_attachment':
-        result = await confluence.uploadAndEmbedAttachment(args.pageId, args.file, args.comment);
+        result = await confluence.uploadAndEmbedAttachment(args.pageId, {
+          file: args.file,
+          fileUrl: args.fileUrl,
+          filename: args.filename,
+          comment: args.comment,
+          width: args.width,
+          position: args.position
+        });
         break;
 
       default:
