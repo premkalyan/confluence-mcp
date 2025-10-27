@@ -7,13 +7,13 @@
 
 ## 📊 Test Summary
 
-**Pass Rate: 66.7% (22/33 tests)**
+**Pass Rate: 69.7% (23/33 tests)**
 
 | Status | Count | Tools |
 |--------|-------|-------|
-| ✅ **PASSED** | 22 | All core tools working |
+| ✅ **PASSED** | 23 | All core tools working + image embedding |
 | ❌ **FAILED** | 3 | API-specific issues (search, update_page, create_page_template) |
-| ⏭️ **SKIPPED** | 8 | File operations requiring binary data |
+| ⏭️ **SKIPPED** | 7 | File operations requiring binary data |
 
 ## ✅ Test Results by Category
 
@@ -42,8 +42,8 @@
 - ✅ **list_documents** - Listed documents in space 1P
 - ⏭️ **embed_existing_attachment** - Skipped (requires existing attachment)
 
-### 🖼️ Image Upload & Embedding (0/2) - Skipped
-- ⏭️ **upload_and_embed_document** - Skipped (requires file data)
+### 🖼️ Image Upload & Embedding (1/2) - 50% ✅
+- ✅ **upload_and_embed_document** - Successfully tested with generated diagram (33.36 KB PNG)
 - ⏭️ **upload_and_embed_attachment** - Skipped (requires file data)
 
 ### 📁 Folder & Hierarchy (3/3) - 100% ✅
@@ -184,9 +184,10 @@
 
 ## 🧪 Test Coverage
 
-**API Coverage**: 97% (all 32 tools invoked, 22 fully tested)
-**Success Rate**: 67% (22 passed, 3 failed, 8 skipped due to data requirements)
+**API Coverage**: 97% (all 32 tools invoked, 23 fully tested)
+**Success Rate**: 70% (23 passed, 3 failed, 7 skipped due to data requirements)
 **Core Functionality**: 100% (all essential CRUD operations working)
+**Image Embedding**: ✅ Tested and working (800x600 PNG, 33.36 KB)
 
 ## 🌐 Deployment Status
 
@@ -200,7 +201,8 @@
 
 The Confluence MCP is **production-ready** for the majority of use cases:
 
-✅ **22 out of 25 testable tools** (88% excluding file operations) are working correctly
+✅ **23 out of 26 testable tools** (88% excluding file operations) are working correctly
+✅ **Image embedding workflow** fully tested and working (diagram generation → upload → embed)
 ✅ **All critical operations** (read, create pages, folders, labels, macros, JIRA integration) are functional
 ✅ **No system errors** - all failures are API-specific and have workarounds
 ✅ **Authentication and authorization** working perfectly
@@ -212,7 +214,45 @@ The Confluence MCP is **production-ready** for the majority of use cases:
 3. Add file upload capabilities when needed
 4. Monitor usage and add more tools as requirements emerge
 
+## 🖼️ Image Embedding Workflow Test
+
+**Test Date**: October 27, 2025 05:08:17
+**Test Script**: `test-image-embedding.js`
+**Test Page**: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461027353
+
+### Test Workflow
+1. ✅ **Generate Diagram**: Created 800x600 PNG architectural diagram using Node.js canvas
+2. ✅ **Create Page**: Created Confluence page "Architecture Diagram Test - 2025-10-27 05:08:17"
+3. ✅ **Upload & Embed**: Uploaded image (33.36 KB) as base64 data and embedded in page
+4. ✅ **Verify**: Confirmed page version updated to v2 with embedded image
+
+### Technical Implementation
+- **Image Generation**: Node.js `canvas` package to generate architectural diagram
+- **Upload Format**: Base64-encoded PNG with proper structure:
+  ```javascript
+  {
+    file: {
+      name: 'architecture-diagram.png',
+      data: base64String,
+      mimeType: 'image/png'
+    },
+    width: 800,
+    position: 'center'
+  }
+  ```
+- **API Endpoint**: `upload_and_embed_document` tool
+- **Result**: Successfully embedded 800x600 image in Confluence page
+
+### Key Finding
+The `upload_and_embed_document` tool requires the `file` parameter to be an object with structure:
+```javascript
+{ name: string, data: string (base64), mimeType: string }
+```
+
+Not just a base64 string directly. This is now documented and working correctly.
+
 ---
 
 *Comprehensive testing completed on October 27, 2025*
 *Test Page: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461191169*
+*Image Embedding Test: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461027353*
