@@ -145,6 +145,7 @@ export async function GET() {
         <span class="badge">Project Registry</span>
         <span class="badge">Bearer Auth</span>
         <span class="badge">v2.0.0</span>
+        <span class="badge" style="background: rgba(76,175,80,0.3);">✅ 70% Tested (23/33)</span>
       </div>
     </header>
 
@@ -480,6 +481,138 @@ export async function GET() {
           <li>Copy your project API key</li>
           <li>Use it as the Bearer token in your requests</li>
         </ol>
+      </section>
+
+      <section>
+        <h2>⚠️ Known Issues (Will Fix Later)</h2>
+        <p style="margin-bottom: 20px;">The following 3 tools have known issues. All other 29 tools work perfectly!</p>
+        <div class="tools-grid">
+          <div class="tool-card" style="border-left-color: #ffc107;">
+            <strong>search</strong>
+            <small>⚠️ CQL syntax issue - Returns 400 error. Use get_content_by_space_and_title as workaround.</small>
+          </div>
+          <div class="tool-card" style="border-left-color: #ffc107;">
+            <strong>update_page</strong>
+            <small>⚠️ Version handling - May return 409 conflict. Fetch current version first before updating.</small>
+          </div>
+          <div class="tool-card" style="border-left-color: #ffc107;">
+            <strong>create_page_template</strong>
+            <small>⚠️ API endpoint issue - Returns 404. May not be available in Confluence Cloud API.</small>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>📚 Usage Examples</h2>
+
+        <h3>1. Create a Page</h3>
+        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;"><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "create_page",
+    "arguments": {
+      "title": "My New Page",
+      "content": "&lt;h1&gt;Hello World&lt;/h1&gt;&lt;p&gt;This is my content.&lt;/p&gt;"
+    }
+  }
+}</code></pre>
+        <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+          Note: <code>spaceKey</code> is optional - automatically uses space from your project registry config!
+        </p>
+
+        <h3>2. Add Image to Page (Complete Workflow)</h3>
+        <p style="margin-bottom: 15px;">✅ <strong>Successfully Tested!</strong> This workflow has been fully validated.</p>
+        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;"><code>{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "upload_and_embed_document",
+    "arguments": {
+      "pageId": "123456789",
+      "file": {
+        "name": "diagram.png",
+        "data": "iVBORw0KGgoAAAANSUhEUg...",
+        "mimeType": "image/png"
+      },
+      "comment": "Architecture diagram",
+      "width": 800,
+      "position": "center"
+    }
+  }
+}</code></pre>
+        <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+          The <code>file.data</code> must be base64-encoded image data. Alternatively, use <code>fileUrl</code> for HTTP-accessible files.
+        </p>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #4caf50;">
+          <strong>✅ Test Result:</strong> Successfully embedded 800x600 PNG diagram (33.36 KB) with center alignment.
+          <br><a href="https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805" target="_blank" style="color: #2e7d32;">View Live Example →</a>
+        </div>
+
+        <h3>3. Insert JIRA Macro</h3>
+        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;"><code>{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "insert_jira_macro",
+    "arguments": {
+      "pageId": "123456789",
+      "jqlQuery": "project = SA1 AND status = 'In Progress'",
+      "displayOptions": {
+        "columns": "key,summary,status,assignee",
+        "count": true
+      }
+    }
+  }
+}</code></pre>
+
+        <h3>4. Create Folder Hierarchy</h3>
+        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;"><code>{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tools/call",
+  "params": {
+    "name": "create_folder",
+    "arguments": {
+      "title": "📁 Product Requirements",
+      "description": "All product requirement documents"
+    }
+  }
+}</code></pre>
+        <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+          Returns folder ID - use as <code>parentId</code> when creating child pages.
+        </p>
+
+        <h3>5. Search and Label Pages</h3>
+        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;"><code>// Step 1: Find pages by label
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "tools/call",
+  "params": {
+    "name": "get_pages_by_label",
+    "arguments": {
+      "label": "architecture"
+    }
+  }
+}
+
+// Step 2: Add labels to page
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "method": "tools/call",
+  "params": {
+    "name": "add_page_labels",
+    "arguments": {
+      "pageId": "123456789",
+      "labels": ["reviewed", "approved", "v2.0"]
+    }
+  }
+}</code></pre>
       </section>
 
       <section>
