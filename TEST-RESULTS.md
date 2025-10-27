@@ -2,7 +2,8 @@
 
 **Test Date**: October 27, 2025
 **API Endpoint**: https://confluence-mcp-six.vercel.app/api/mcp
-**Test Space**: 1P (Bounteous Confluence)
+**Test Space**: SA1 (from project registry config)
+**Base URL**: https://bounteous.jira.com/wiki (from project registry config)
 **Bearer Token**: pk_NTWl4DhbqsJ2xflMRtT9rhRJEj8FxQW-YCMPABtapFQ
 
 ## 📊 Test Summary
@@ -216,13 +217,14 @@ The Confluence MCP is **production-ready** for the majority of use cases:
 
 ## 🖼️ Image Embedding Workflow Test
 
-**Test Date**: October 27, 2025 05:08:17
+**Test Date**: October 27, 2025 05:14:18
 **Test Script**: `test-image-embedding.js`
-**Test Page**: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461027353
+**Test Page**: https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805
+**Space**: SA1 (automatically from project registry config)
 
 ### Test Workflow
 1. ✅ **Generate Diagram**: Created 800x600 PNG architectural diagram using Node.js canvas
-2. ✅ **Create Page**: Created Confluence page "Architecture Diagram Test - 2025-10-27 05:08:17"
+2. ✅ **Create Page**: Created Confluence page "Architecture Diagram Test - 2025-10-27 05:14:18" in space SA1
 3. ✅ **Upload & Embed**: Uploaded image (33.36 KB) as base64 data and embedded in page
 4. ✅ **Verify**: Confirmed page version updated to v2 with embedded image
 
@@ -254,5 +256,6 @@ Not just a base64 string directly. This is now documented and working correctly.
 ---
 
 *Comprehensive testing completed on October 27, 2025*
-*Test Page: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461191169*
-*Image Embedding Test: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461027353*
+*Image Embedding Test: https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805*
+
+**Important**: All space keys (SA1) and base URLs (https://bounteous.jira.com/wiki) are automatically retrieved from project registry config using the bearer token - no hardcoding required!

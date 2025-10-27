@@ -159,10 +159,11 @@ async function testImageEmbedding() {
     console.log('');
 
     // Step 2: Create Confluence page
+    // Note: spaceKey is optional - it will use the space from project registry config (SA1)
     console.log('📄 Step 1: Creating Confluence page...');
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
     const createResult = await makeRequest('create_page', {
-      spaceKey: '1P',
+      // spaceKey is omitted - will be fetched from project registry config
       title: `Architecture Diagram Test - ${timestamp}`,
       content: '<h1>System Architecture</h1><p>This page demonstrates automated diagram embedding.</p>'
     });
@@ -219,8 +220,8 @@ async function testImageEmbedding() {
       console.log(`✅ Page verified:`);
       console.log(`   Version: ${pageData.version?.number || 'N/A'}`);
       console.log(`   Title: ${pageData.title || 'N/A'}`);
-      if (pageData._links?.webui) {
-        console.log(`   URL: https://bounteous.atlassian.net/wiki${pageData._links.webui}`);
+      if (pageData._links?.webui && pageData._links?.base) {
+        console.log(`   URL: ${pageData._links.base}${pageData._links.webui}`);
       }
     }
 
@@ -235,7 +236,14 @@ async function testImageEmbedding() {
     console.log('✅ Image uploaded and embedded');
     console.log('✅ Page verified');
     console.log('');
-    console.log(`🔗 View page: https://bounteous.atlassian.net/wiki/spaces/1P/pages/${pageId}`);
+
+    // Get the correct URL from the verify result
+    if (verifyResult.result?.result?._links) {
+      const links = verifyResult.result.result._links;
+      if (links.base && links.webui) {
+        console.log(`🔗 View page: ${links.base}${links.webui}`);
+      }
+    }
 
   } catch (error) {
     console.error('❌ Test failed:', error);

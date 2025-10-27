@@ -1,9 +1,10 @@
 # Confluence MCP - Image Embedding Workflow Test Results
 
-**Test Date**: October 27, 2025 05:08:17
+**Test Date**: October 27, 2025 05:14:18
 **API Endpoint**: https://confluence-mcp-six.vercel.app/api/mcp
 **Test Script**: `test-image-embedding.js`
-**Test Page**: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461027353
+**Test Page**: https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805
+**Space**: SA1 (from project registry config)
 **Status**: ✅ **PASSED** - Complete workflow working perfectly
 
 ---
@@ -35,7 +36,7 @@ Validate the complete image embedding workflow as requested:
 📏 Image size: 33.36 KB
 
 📄 Step 1: Creating Confluence page...
-✅ Page created: 264468461027353
+✅ Page created: 264468461093805
 
 🖼️  Step 2: Uploading and embedding diagram...
 ✅ Image uploaded and embedded successfully!
@@ -43,8 +44,8 @@ Validate the complete image embedding workflow as requested:
 🔍 Step 3: Verifying page update...
 ✅ Page verified:
    Version: 2
-   Title: Architecture Diagram Test - 2025-10-27 05:08:17
-   URL: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461027353
+   Title: Architecture Diagram Test - 2025-10-27 05:14:18
+   URL: https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805
 
 ======================================================================
 🎉 Image Embedding Test Complete!
@@ -107,12 +108,12 @@ function generateDiagramImage() {
 ### Page Creation (Step 2)
 ```javascript
 const createResult = await makeRequest('create_page', {
-  spaceKey: '1P',
+  // spaceKey is omitted - automatically uses SA1 from project registry config
   title: `Architecture Diagram Test - ${timestamp}`,
   content: '<h1>System Architecture</h1><p>This page demonstrates automated diagram embedding.</p>'
 });
 
-const pageId = extractPageId(createResult); // → 264468461027353
+const pageId = extractPageId(createResult); // → 264468461093805
 ```
 
 ### Image Upload & Embedding (Step 3)
@@ -369,6 +370,8 @@ The complete image embedding workflow is **fully functional** and ready for prod
 
 ---
 
-**View Test Result**: https://bounteous.atlassian.net/wiki/spaces/1P/pages/264468461027353
+**View Test Result**: https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805
 
 *Test completed successfully on October 27, 2025*
+
+**Note**: Space key (SA1) and base URL (https://bounteous.jira.com/wiki) are automatically fetched from project registry config using the bearer token. No hardcoding required!
