@@ -94,6 +94,126 @@ First create the page, then add labels:
 }
 ```
 
+### API Response Format
+
+#### Successful create_page Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "success": true,
+    "tool": "create_page",
+    "result": {
+      "id": "264468461093805",
+      "type": "page",
+      "status": "current",
+      "title": "My Documentation Page",
+      "space": {
+        "id": 123456,
+        "key": "SA1",
+        "name": "Project Space",
+        "type": "global",
+        "_links": {
+          "self": "https://bounteous.jira.com/wiki/rest/api/space/SA1"
+        }
+      },
+      "history": {
+        "latest": true,
+        "createdBy": {
+          "type": "known",
+          "accountId": "5d123abc456def789",
+          "email": "user@example.com",
+          "displayName": "User Name"
+        },
+        "createdDate": "2025-10-27T10:14:18.000Z"
+      },
+      "version": {
+        "by": {
+          "type": "known",
+          "accountId": "5d123abc456def789",
+          "email": "user@example.com",
+          "displayName": "User Name"
+        },
+        "when": "2025-10-27T10:14:18.000Z",
+        "number": 1,
+        "minorEdit": false
+      },
+      "body": {
+        "storage": {
+          "value": "<h1>Introduction</h1><p>This is the page content.</p>",
+          "representation": "storage"
+        }
+      },
+      "_links": {
+        "base": "https://bounteous.jira.com/wiki",
+        "context": "/wiki",
+        "self": "https://bounteous.jira.com/wiki/rest/api/content/264468461093805",
+        "tinyui": "/x/rYCsXIjw",
+        "editui": "/pages/resumedraft.action?draftId=264468461093805",
+        "webui": "/spaces/SA1/pages/264468461093805/My+Documentation+Page"
+      },
+      "_expandable": {
+        "container": "/rest/api/space/SA1",
+        "metadata": "",
+        "operations": "",
+        "children": "/rest/api/content/264468461093805/child",
+        "restrictions": "/rest/api/content/264468461093805/restriction/byOperation",
+        "history": "/rest/api/content/264468461093805/history",
+        "ancestors": "",
+        "descendants": "/rest/api/content/264468461093805/descendant",
+        "space": "/rest/api/space/SA1"
+      }
+    }
+  }
+}
+```
+
+#### Key Response Fields
+
+**Essential Fields**:
+- `result.result.id` - **Page ID** (use this for subsequent operations)
+- `result.result.title` - Page title
+- `result.result.space.key` - Space key (e.g., "SA1")
+- `result.result.version.number` - Version number (starts at 1)
+- `result.result._links.webui` - Relative URL path to page
+- `result.result._links.base` - Base URL for Confluence instance
+
+**Constructing Full Page URL**:
+```javascript
+const response = await createPage(...);
+const pageData = response.result.result;
+const fullUrl = `${pageData._links.base}${pageData._links.webui}`;
+// Result: https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805/My+Documentation+Page
+```
+
+**Extracting Page ID**:
+```javascript
+const response = await createPage(...);
+const pageId = response.result.result.id;
+// Use this pageId for upload_and_embed_document, add_page_labels, etc.
+```
+
+#### Error Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32603,
+    "message": "spaceKey required: provide in arguments or configure in project registry"
+  }
+}
+```
+
+**Common Error Codes**:
+- `-32600` - Invalid Request (malformed JSON-RPC)
+- `-32601` - Method Not Found (unknown tool name)
+- `-32603` - Internal Error (Confluence API error or validation failure)
+- `401` - Unauthorized (missing/invalid Bearer token)
+
 ### Confluence Storage Format (HTML)
 
 Confluence uses a specific HTML format. Key elements:
@@ -271,6 +391,57 @@ Confluence uses a specific HTML format. Key elements:
 {
   "position": "right"    // Float right with text wrap
 }
+```
+
+### upload_and_embed_document Response
+
+#### Successful Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "success": true,
+    "tool": "upload_and_embed_document",
+    "result": {
+      "success": true,
+      "attachmentId": "att987654321",
+      "filename": "diagram.png",
+      "fileSize": 34123,
+      "mediaType": "image/png",
+      "downloadUrl": "https://bounteous.jira.com/wiki/download/attachments/264468461093805/diagram.png",
+      "pageId": "264468461093805",
+      "pageUrl": "https://bounteous.jira.com/wiki/spaces/SA1/pages/264468461093805",
+      "version": 2,
+      "embedded": true,
+      "message": "Document 'diagram.png' uploaded and embedded successfully"
+    }
+  }
+}
+```
+
+#### Key Response Fields
+
+**Essential Fields**:
+- `result.result.attachmentId` - Attachment ID (use for delete_document)
+- `result.result.filename` - Uploaded filename
+- `result.result.fileSize` - File size in bytes (34123 = 33.36 KB)
+- `result.result.downloadUrl` - Direct download link
+- `result.result.pageId` - Page where image was embedded
+- `result.result.pageUrl` - Full URL to page
+- `result.result.version` - New page version after embedding
+- `result.result.embedded` - Confirmation that image was embedded
+
+**Example Usage**:
+```javascript
+const uploadResponse = await uploadAndEmbedDocument(...);
+const result = uploadResponse.result.result;
+
+console.log(`✅ Uploaded: ${result.filename}`);
+console.log(`📏 Size: ${(result.fileSize / 1024).toFixed(2)} KB`);
+console.log(`🔗 View: ${result.pageUrl}`);
+console.log(`⬇️  Download: ${result.downloadUrl}`);
 ```
 
 ---
@@ -553,9 +724,18 @@ async function createPageWithDiagram() {
   });
 
   const createResult = await createResponse.json();
-  const pageId = createResult.result.result.id;
 
-  console.log('✅ Page created:', pageId);
+  // Extract page data from response
+  const pageData = createResult.result.result;
+  const pageId = pageData.id;
+  const pageUrl = `${pageData._links.base}${pageData._links.webui}`;
+
+  console.log('✅ Page created successfully!');
+  console.log(`   Page ID: ${pageId}`);
+  console.log(`   Title: ${pageData.title}`);
+  console.log(`   Space: ${pageData.space.key}`);
+  console.log(`   URL: ${pageUrl}`);
+  console.log(`   Version: ${pageData.version.number}`);
 
   // Step 2: Generate and upload diagram
   const imageBuffer = await renderMermaid(`
@@ -596,9 +776,24 @@ async function createPageWithDiagram() {
   });
 
   const uploadResult = await uploadResponse.json();
-  console.log('✅ Diagram embedded:', uploadResult);
 
-  return pageId;
+  // Extract upload data from response
+  const uploadData = uploadResult.result.result;
+
+  console.log('✅ Diagram embedded successfully!');
+  console.log(`   Filename: ${uploadData.filename}`);
+  console.log(`   Size: ${(uploadData.fileSize / 1024).toFixed(2)} KB`);
+  console.log(`   Media Type: ${uploadData.mediaType}`);
+  console.log(`   Page Version: ${uploadData.version}`);
+  console.log(`   Download: ${uploadData.downloadUrl}`);
+  console.log(`   View Page: ${uploadData.pageUrl}`);
+
+  return {
+    pageId: pageId,
+    pageUrl: pageUrl,
+    attachmentId: uploadData.attachmentId,
+    downloadUrl: uploadData.downloadUrl
+  };
 }
 
 createPageWithDiagram();
