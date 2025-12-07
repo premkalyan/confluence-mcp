@@ -745,7 +745,8 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'get_content_by_id':
-        result = await confluence.getContentById(args.id, args.expand || []);
+        // Don't use || [] - let the function default to ['body.storage', 'version', 'ancestors']
+        result = await confluence.getContentById(args.id, args.expand);
         break;
 
       case 'get_content_by_space_and_title':
