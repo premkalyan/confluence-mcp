@@ -769,7 +769,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'get_page_children':
-        result = await confluence.getPageChildren(args.pageId);
+        result = await confluence.getPageChildren(args.pageId, args.expand);
         break;
 
       case 'add_page_labels':

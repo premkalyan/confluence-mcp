@@ -42,8 +42,8 @@ export class ConfluenceClient {
     return response.data;
   }
 
-  async getContentById(id: string, expand: string[] = []) {
-    const expandParam = expand.length ? `?expand=${expand.join(',')}` : '';
+  async getContentById(id: string, expand: string[] = ['body.storage', 'version', 'ancestors']) {
+    const expandParam = `?expand=${expand.join(',')}`;
     const response = await this.client.get(`/content/${id}${expandParam}`);
     return response.data;
   }
@@ -109,8 +109,9 @@ export class ConfluenceClient {
     return response.data;
   }
 
-  async getPageChildren(pageId: string) {
-    const response = await this.client.get(`/content/${pageId}/child/page`);
+  async getPageChildren(pageId: string, expand: string[] = ['body.storage', 'version']) {
+    const expandParam = expand.length ? `?expand=${expand.join(',')}` : '';
+    const response = await this.client.get(`/content/${pageId}/child/page${expandParam}`);
     return response.data;
   }
 
