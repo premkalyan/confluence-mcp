@@ -44,10 +44,7 @@ export class ConfluenceClient {
 
   async getContentById(id: string, expand: string[] = ['body.storage', 'version', 'ancestors']) {
     const expandParam = `?expand=${expand.join(',')}`;
-    const url = `/content/${id}${expandParam}`;
-    console.log('[ConfluenceClient] getContentById URL:', url);
-    const response = await this.client.get(url);
-    console.log('[ConfluenceClient] Response keys:', Object.keys(response.data));
+    const response = await this.client.get(`/content/${id}${expandParam}`);
     return response.data;
   }
 
