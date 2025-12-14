@@ -5,6 +5,51 @@ import { ConfluenceClient } from '@/lib/confluenceClient';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// MCP Server Info
+const SERVER_INFO = {
+  name: 'confluence-mcp',
+  version: '2.0.1'
+};
+
+// MCP Protocol Version
+const PROTOCOL_VERSION = '2024-11-05';
+
+// Tool definitions for tools/list
+const TOOLS = [
+  { name: 'get_spaces', description: 'List all Confluence spaces', inputSchema: { type: 'object', properties: { params: { type: 'object' } } } },
+  { name: 'get_space', description: 'Get details of a specific space', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' } } } },
+  { name: 'get_space_permissions', description: 'View space permissions', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' } } } },
+  { name: 'get_content_by_id', description: 'Retrieve page by ID', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+  { name: 'get_content_by_space_and_title', description: 'Find page by space and title', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, title: { type: 'string' } }, required: ['title'] } },
+  { name: 'search', description: 'Search using CQL (Confluence Query Language)', inputSchema: { type: 'object', properties: { cql: { type: 'string' }, limit: { type: 'number' } }, required: ['cql'] } },
+  { name: 'create_page', description: 'Create a new Confluence page', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, title: { type: 'string' }, content: { type: 'string' }, parentId: { type: 'string' } }, required: ['title', 'content'] } },
+  { name: 'update_page', description: 'Update existing page content', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, title: { type: 'string' }, content: { type: 'string' }, version: { type: 'number' } }, required: ['pageId'] } },
+  { name: 'get_page_children', description: 'Get child pages', inputSchema: { type: 'object', properties: { pageId: { type: 'string' } }, required: ['pageId'] } },
+  { name: 'get_page_history', description: 'View page version history', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, limit: { type: 'number' } }, required: ['pageId'] } },
+  { name: 'get_pages_by_label', description: 'Find pages with specific labels', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, label: { type: 'string' }, limit: { type: 'number' } }, required: ['label'] } },
+  { name: 'add_page_labels', description: 'Add labels to pages', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, labels: { type: 'array' } }, required: ['pageId', 'labels'] } },
+  { name: 'get_page_attachments', description: 'List page attachments', inputSchema: { type: 'object', properties: { pageId: { type: 'string' } }, required: ['pageId'] } },
+  { name: 'upload_document', description: 'Upload file to page', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, file: { type: 'object' }, comment: { type: 'string' } }, required: ['pageId', 'file'] } },
+  { name: 'update_document', description: 'Update existing attachment', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, attachmentId: { type: 'string' }, file: { type: 'object' } }, required: ['pageId', 'attachmentId', 'file'] } },
+  { name: 'delete_document', description: 'Remove attachment', inputSchema: { type: 'object', properties: { attachmentId: { type: 'string' } }, required: ['attachmentId'] } },
+  { name: 'list_documents', description: 'List documents in space', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, type: { type: 'string' }, limit: { type: 'number' } } } },
+  { name: 'embed_existing_attachment', description: 'Embed attachment in page', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, attachmentId: { type: 'string' }, attachmentName: { type: 'string' } }, required: ['pageId', 'attachmentId', 'attachmentName'] } },
+  { name: 'upload_and_embed_document', description: 'Upload and embed in one step', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, file: { type: 'object' }, fileUrl: { type: 'string' } }, required: ['pageId'] } },
+  { name: 'upload_and_embed_attachment', description: 'Upload and embed attachment', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, file: { type: 'object' }, fileUrl: { type: 'string' } }, required: ['pageId'] } },
+  { name: 'create_folder', description: 'Create folder (parent page)', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, title: { type: 'string' }, parentId: { type: 'string' } }, required: ['title'] } },
+  { name: 'get_folder_contents', description: 'List folder contents', inputSchema: { type: 'object', properties: { pageId: { type: 'string' } }, required: ['pageId'] } },
+  { name: 'move_page_to_folder', description: 'Move page to different parent', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, newParentId: { type: 'string' } }, required: ['pageId', 'newParentId'] } },
+  { name: 'create_page_template', description: 'Create reusable template', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, name: { type: 'string' }, content: { type: 'string' } }, required: ['name', 'content'] } },
+  { name: 'get_page_templates', description: 'List space templates', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' } } } },
+  { name: 'apply_page_template', description: 'Create page from template', inputSchema: { type: 'object', properties: { templateId: { type: 'string' }, spaceKey: { type: 'string' }, title: { type: 'string' } }, required: ['templateId', 'title'] } },
+  { name: 'update_page_template', description: 'Modify template', inputSchema: { type: 'object', properties: { templateId: { type: 'string' }, name: { type: 'string' }, content: { type: 'string' } }, required: ['templateId'] } },
+  { name: 'insert_macro', description: 'Add macro to page', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, macroName: { type: 'string' }, parameters: { type: 'object' } }, required: ['pageId', 'macroName'] } },
+  { name: 'update_macro', description: 'Modify existing macro', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, oldMacroName: { type: 'string' }, newMacroName: { type: 'string' } }, required: ['pageId', 'oldMacroName'] } },
+  { name: 'get_page_macros', description: 'List page macros', inputSchema: { type: 'object', properties: { pageId: { type: 'string' } }, required: ['pageId'] } },
+  { name: 'link_page_to_jira_issue', description: 'Link to Jira issue', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, issueKey: { type: 'string' } }, required: ['pageId', 'issueKey'] } },
+  { name: 'insert_jira_macro', description: 'Embed Jira issues', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, jqlQuery: { type: 'string' }, displayOptions: { type: 'object' } }, required: ['pageId', 'jqlQuery'] } }
+];
+
 // JSON-RPC 2.0 types
 interface JSONRPCRequest {
   jsonrpc: '2.0';
@@ -664,12 +709,65 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Parse request body first
+    const body = await request.json();
+
+    // ============================================================
+    // MCP PROTOCOL HANDLERS (Streamable HTTP Transport)
+    // No auth required for discovery - auth only for tools/call
+    // ============================================================
+
+    // 1. INITIALIZE - MCP handshake
+    if (body.method === 'initialize') {
+      console.log('MCP: Initialize request received');
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: {
+          protocolVersion: PROTOCOL_VERSION,
+          capabilities: {
+            tools: {}
+          },
+          serverInfo: SERVER_INFO
+        }
+      });
+    }
+
+    // 2. INITIALIZED - Client acknowledgment
+    if (body.method === 'notifications/initialized') {
+      console.log('MCP: Client initialized');
+      return new NextResponse(null, { status: 204 });
+    }
+
+    // 3. TOOLS/LIST - Return available tools (no auth required)
+    if (body.method === 'tools/list') {
+      console.log('MCP: Tools list request');
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: { tools: TOOLS }
+      });
+    }
+
+    // 4. PING - Health check (no auth required)
+    if (body.method === 'ping') {
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: body.id,
+        result: {}
+      });
+    }
+
+    // ============================================================
+    // AUTHENTICATED ENDPOINTS (tools/call)
+    // ============================================================
+
     // Extract Bearer token from Authorization header
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({
         jsonrpc: '2.0',
-        id: null,
+        id: body.id || null,
         error: {
           code: -32600,
           message: 'Unauthorized: Bearer token required in Authorization header'
@@ -679,8 +777,8 @@ export async function POST(request: NextRequest) {
 
     const apiKey = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-    // Parse JSON-RPC 2.0 request
-    const jsonRpcRequest: JSONRPCRequest = await request.json();
+    // Use already parsed body
+    const jsonRpcRequest = body as JSONRPCRequest;
 
     // Validate JSON-RPC 2.0 format
     if (jsonRpcRequest.jsonrpc !== '2.0') {
@@ -700,7 +798,7 @@ export async function POST(request: NextRequest) {
         id: jsonRpcRequest.id,
         error: {
           code: -32601,
-          message: `Method not found: ${jsonRpcRequest.method}`
+          message: `Method not found: ${jsonRpcRequest.method}. Use initialize, tools/list, or tools/call.`
         }
       }, { status: 400 });
     }
