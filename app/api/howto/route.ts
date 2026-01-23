@@ -207,15 +207,226 @@ export async function GET() {
           }
         },
         {
-          name: "upload_and_embed_attachment",
-          description: "Upload file and embed in page",
+          name: "upload_document",
+          description: "Upload file to page (attachment only, no embed)",
           parameters: {
             pageId: "Page ID (required)",
-            filename: "File name (required)",
-            content: "Base64 encoded content (required)"
+            file: {
+              name: "Filename with extension (e.g., 'diagram.png')",
+              data: "Base64 encoded file content",
+              mimeType: "MIME type (e.g., 'image/png', 'application/pdf')"
+            },
+            comment: "Optional upload comment"
+          }
+        },
+        {
+          name: "upload_and_embed_document",
+          description: "Upload file AND embed it in page content (RECOMMENDED for images)",
+          parameters: {
+            pageId: "Page ID (required)",
+            file: "Object with {name, data (base64), mimeType} - use this OR fileUrl",
+            fileUrl: "HTTP URL to fetch file from - use this OR file object",
+            filename: "Override filename (optional)",
+            comment: "Upload comment (optional)",
+            width: "Display width in pixels (optional, e.g., 800)",
+            position: "Where to insert: 'start', 'end', 'center' (default: 'end')"
+          },
+          note: "Use EITHER 'file' object OR 'fileUrl', not both"
+        },
+        {
+          name: "upload_and_embed_attachment",
+          description: "Alias for upload_and_embed_document",
+          parameters: "Same as upload_and_embed_document"
+        },
+        {
+          name: "embed_existing_attachment",
+          description: "Embed an already-uploaded attachment into page",
+          parameters: {
+            pageId: "Page ID (required)",
+            attachmentId: "Attachment ID (required)",
+            attachmentName: "Filename for display (required)",
+            width: "Display width in pixels (optional)",
+            position: "Insert position: 'start', 'end', 'center' (optional)"
           }
         }
       ],
+
+      image_upload_guide: {
+        title: "Complete Guide: Uploading Images to Confluence",
+        important: "This is the most common operation that agents struggle with. Follow these examples exactly.",
+
+        method_1_base64: {
+          description: "Upload image using base64-encoded data (works with local files)",
+          steps: [
+            "1. Read the image file",
+            "2. Convert to base64",
+            "3. Call upload_and_embed_document with file object"
+          ],
+          example: {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "tools/call",
+            params: {
+              name: "upload_and_embed_document",
+              arguments: {
+                pageId: "123456789",
+                file: {
+                  name: "architecture-diagram.png",
+                  data: "iVBORw0KGgoAAAANSUhEUgAAAAUA...",
+                  mimeType: "image/png"
+                },
+                comment: "Architecture diagram v2",
+                width: 800,
+                position: "end"
+              }
+            }
+          },
+          bash_example: `# Convert local image to base64 and upload
+IMAGE_BASE64=$(base64 -i ./diagram.png)
+
+curl -X POST "https://confluence-mcp-six.vercel.app/api/mcp" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "upload_and_embed_document",
+      "arguments": {
+        "pageId": "123456789",
+        "file": {
+          "name": "diagram.png",
+          "data": "'"$IMAGE_BASE64"'",
+          "mimeType": "image/png"
+        },
+        "width": 800
+      }
+    }
+  }'`
+        },
+
+        method_2_url: {
+          description: "Upload image from URL (works with HTTP-accessible images)",
+          steps: [
+            "1. Have image hosted at accessible URL",
+            "2. Call upload_and_embed_document with fileUrl"
+          ],
+          example: {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "tools/call",
+            params: {
+              name: "upload_and_embed_document",
+              arguments: {
+                pageId: "123456789",
+                fileUrl: "https://example.com/images/diagram.png",
+                filename: "architecture-diagram.png",
+                comment: "Fetched from design system",
+                width: 600,
+                position: "center"
+              }
+            }
+          },
+          bash_example: `# Upload image from URL
+curl -X POST "https://confluence-mcp-six.vercel.app/api/mcp" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "upload_and_embed_document",
+      "arguments": {
+        "pageId": "123456789",
+        "fileUrl": "https://example.com/diagram.png",
+        "filename": "my-diagram.png",
+        "width": 800
+      }
+    }
+  }'`
+        },
+
+        supported_formats: {
+          images: ["image/png", "image/jpeg", "image/gif", "image/svg+xml", "image/webp"],
+          documents: ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+          other: ["text/plain", "text/csv", "application/json"]
+        },
+
+        common_errors: {
+          "file.data is not valid base64": "Ensure base64 encoding has no line breaks. Use: base64 -w 0 file.png",
+          "mimeType is required": "Always include mimeType in file object (e.g., 'image/png')",
+          "pageId not found": "Verify page exists and you have write access",
+          "413 Payload Too Large": "Image too large. Resize or compress before uploading. Max ~10MB."
+        },
+
+        python_example: `import base64
+import requests
+
+# Read and encode image
+with open("diagram.png", "rb") as f:
+    image_base64 = base64.b64encode(f.read()).decode("utf-8")
+
+# Upload to Confluence
+response = requests.post(
+    "https://confluence-mcp-six.vercel.app/api/mcp",
+    headers={
+        "Content-Type": "application/json",
+        "Authorization": "Bearer YOUR_API_KEY"
+    },
+    json={
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+            "name": "upload_and_embed_document",
+            "arguments": {
+                "pageId": "123456789",
+                "file": {
+                    "name": "diagram.png",
+                    "data": image_base64,
+                    "mimeType": "image/png"
+                },
+                "width": 800
+            }
+        }
+    }
+)
+print(response.json())`,
+
+        javascript_example: `const fs = require('fs');
+
+// Read and encode image
+const imageBase64 = fs.readFileSync('./diagram.png').toString('base64');
+
+// Upload to Confluence
+const response = await fetch('https://confluence-mcp-six.vercel.app/api/mcp', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_KEY'
+  },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/call',
+    params: {
+      name: 'upload_and_embed_document',
+      arguments: {
+        pageId: '123456789',
+        file: {
+          name: 'diagram.png',
+          data: imageBase64,
+          mimeType: 'image/png'
+        },
+        width: 800
+      }
+    }
+  })
+});
+console.log(await response.json());`
+      },
       labels: [
         {
           name: "add_page_labels",
@@ -271,7 +482,11 @@ export async function GET() {
       "Use Confluence macros for advanced features (code blocks, panels, etc.)",
       "get_content_by_id now returns body content by default",
       "Include version number when updating pages to avoid conflicts",
-      "CQL search may fail - use get_content_by_space_and_title as fallback"
+      "CQL search may fail - use get_content_by_space_and_title as fallback",
+      "IMAGE UPLOAD: Use upload_and_embed_document with file:{name, data (base64), mimeType}",
+      "IMAGE UPLOAD: Alternatively use fileUrl for HTTP-accessible images",
+      "IMAGE UPLOAD: Always include mimeType (e.g., 'image/png') to avoid errors",
+      "IMAGE UPLOAD: Use base64 -w 0 (no line breaks) when encoding locally"
     ],
 
     links: {
