@@ -762,20 +762,23 @@ export async function POST(request: NextRequest) {
     // AUTHENTICATED ENDPOINTS (tools/call)
     // ============================================================
 
-    // Extract Bearer token from Authorization header
+    // Extract API key from headers (supports both X-API-Key and Authorization: Bearer)
+    const xApiKey = request.headers.get('X-API-Key') || request.headers.get('x-api-key');
     const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+
+    const apiKey = xApiKey || bearerToken;
+
+    if (!apiKey) {
       return NextResponse.json({
         jsonrpc: '2.0',
         id: body.id || null,
         error: {
           code: -32600,
-          message: 'Unauthorized: Bearer token required in Authorization header'
+          message: 'Unauthorized: API key required. Use X-API-Key header or Authorization: Bearer token'
         }
       }, { status: 401 });
     }
-
-    const apiKey = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Use already parsed body
     const jsonRpcRequest = body as JSONRPCRequest;
