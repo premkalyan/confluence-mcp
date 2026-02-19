@@ -86,7 +86,17 @@ export class ConfluenceClient {
     return response.data;
   }
 
-  async updatePage(pageId: string, title: string, content: string, version: number) {
+  async updatePage(pageId: string, title: string, content: string, version?: number) {
+    // Auto-fetch current version if not provided
+    if (!version) {
+      const current = await this.getContentById(pageId, ['version', 'title']);
+      version = current.version?.number as number;
+      // Use current title if not provided
+      if (!title) {
+        title = current.title as string;
+      }
+    }
+
     const body = {
       version: { number: version + 1 },
       title,
@@ -187,14 +197,28 @@ export class ConfluenceClient {
     return response.data;
   }
 
-  async movePageToFolder(pageId: string, newParentId: string, currentVersion: number) {
+  async movePageToFolder(pageId: string, newParentId: string) {
+    // Auto-fetch current version and title (required for PUT)
+    const current = await this.getContentById(pageId, ['version', 'title']);
+    const currentVersion = current.version?.number as number;
+    const title = current.title as string;
+
     const body = {
+      id: pageId,
+      type: 'page',
+      status: 'current',
+      title,
       version: { number: currentVersion + 1 },
       ancestors: [{ id: newParentId }]
     };
     const response = await this.client.put(`/content/${pageId}`, body, {
       headers: { 'Content-Type': 'application/json' }
     });
+    return response.data;
+  }
+
+  async deletePage(pageId: string) {
+    const response = await this.client.delete(`/content/${pageId}`);
     return response.data;
   }
 

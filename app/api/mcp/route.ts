@@ -39,6 +39,7 @@ const TOOLS = [
   { name: 'create_folder', description: 'Create folder (parent page)', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, title: { type: 'string' }, parentId: { type: 'string' } }, required: ['title'] } },
   { name: 'get_folder_contents', description: 'List folder contents', inputSchema: { type: 'object', properties: { pageId: { type: 'string' } }, required: ['pageId'] } },
   { name: 'move_page_to_folder', description: 'Move page to different parent', inputSchema: { type: 'object', properties: { pageId: { type: 'string' }, newParentId: { type: 'string' } }, required: ['pageId', 'newParentId'] } },
+  { name: 'delete_page', description: 'Delete a Confluence page by ID', inputSchema: { type: 'object', properties: { pageId: { type: 'string' } }, required: ['pageId'] } },
   { name: 'create_page_template', description: 'Create reusable template', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' }, name: { type: 'string' }, content: { type: 'string' } }, required: ['name', 'content'] } },
   { name: 'get_page_templates', description: 'List space templates', inputSchema: { type: 'object', properties: { spaceKey: { type: 'string' } } } },
   { name: 'apply_page_template', description: 'Create page from template', inputSchema: { type: 'object', properties: { templateId: { type: 'string' }, spaceKey: { type: 'string' }, title: { type: 'string' } }, required: ['templateId', 'title'] } },
@@ -530,15 +531,11 @@ export async function GET() {
 
       <section>
         <h2>⚠️ Known Issues (Will Fix Later)</h2>
-        <p style="margin-bottom: 20px;">The following 3 tools have known issues. All other 29 tools work perfectly!</p>
+        <p style="margin-bottom: 20px;">The following 2 tools have known issues. All other 31 tools work perfectly!</p>
         <div class="tools-grid">
           <div class="tool-card" style="border-left-color: #ffc107;">
             <strong>search</strong>
             <small>⚠️ CQL syntax issue - Returns 400 error. Use get_content_by_space_and_title as workaround.</small>
-          </div>
-          <div class="tool-card" style="border-left-color: #ffc107;">
-            <strong>update_page</strong>
-            <small>⚠️ Version handling - May return 409 conflict. Fetch current version first before updating.</small>
           </div>
           <div class="tool-card" style="border-left-color: #ffc107;">
             <strong>create_page_template</strong>
@@ -863,7 +860,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'update_page':
-        result = await confluence.updatePage(args.pageId, args.title, args.content, args.version);
+        result = await confluence.updatePage(args.pageId, args.title, args.content, args.version || undefined);
         break;
 
       case 'get_page_attachments':
@@ -903,7 +900,11 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'move_page_to_folder':
-        result = await confluence.movePageToFolder(args.pageId, args.newParentId, args.currentVersion);
+        result = await confluence.movePageToFolder(args.pageId, args.newParentId);
+        break;
+
+      case 'delete_page':
+        result = await confluence.deletePage(args.pageId);
         break;
 
       case 'create_page_template':
